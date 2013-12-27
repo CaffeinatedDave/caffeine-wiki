@@ -1,4 +1,4 @@
-@(title: String, scripts: Html = Html(""))(content: Html)(implicit request: Request[AnyContent])
+@(title: String, scripts: Html = Html(""))(content: Html)(implicit request: Request[AnyContent], flash: Flash)
 
 <!DOCTYPE html>
 
@@ -14,6 +14,8 @@
     <body>
         @menu(title)
         <div id="content">
+        @if(flash.get("error")) {<div class="error">@flash.get("error")</div>}
+        @if(flash.get("success")) {<div class="success">@flash.get("success")</div>}
         @content
         </div>
     </body>

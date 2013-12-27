@@ -23,24 +23,47 @@ object Application extends Controller {
   }
 
   def wiki(page: String) = Action { implicit request =>
-    val article: Article = Article.getArticleByName(page)
-    Ok(views.html.article(article))
+    try { 
+      val sensiblePage = page.head.toUpper + page.tail
+      val article: Article = Article.getArticleByName(sensiblePage)
+      article.id match {
+        case -1 => Redirect(routes.Application.wikiEdit(sensiblePage)).flashing("error" -> "Page doesn't exist, why not create it?")
+        case _ => Ok(views.html.article(article))
+      }
+    } catch {
+      case anfe: ArticleNotFoundException => Redirect(routes.Application.wikiEdit(page)).flashing("error" -> anfe.smth)
+    }
   }
 
   def wikiEdit(page: String) = Action { implicit request =>
-    val article: Article = Article.getArticleByName(page)
-    Ok(views.html.editArticle(articleForm fill (article), article))
+    val sensiblePage = page.head.toUpper + page.tail
+    try {
+      val article: Article = Article.getArticleByName(sensiblePage)
+      article.id match {
+        case -1 => Ok(views.html.editArticle(articleForm fill (article), article)).flashing("error" -> "Page doesn't exist, why not create it?")
+        case _ => Ok(views.html.editArticle(articleForm fill (article), article))
+
+      }
+    } catch {
+      // Who knows whats going on... Panic.
+      case anfe: ArticleNotFoundException => Redirect(routes.Application.wiki("Home")).flashing("error" -> anfe.smth)
+    }
   }
   
   def wikiEditSave = Action { implicit request => 
     articleForm.bindFromRequest.fold(
       formWithErrors => BadRequest("I don't even know"),
       article => {
-        article.id match {
-          case -1 => Article.save(article.title, article.content)
-          case _ => Article.save(article.id, article.title, article.content)
+        try {
+          article.id match {
+            case -1 => Article.save(article.title, article.content)
+            case _ => Article.save(article.id, article.title, article.content)
+          }
+          Redirect(routes.Application.wiki(article.title)).flashing("success" -> "Saved.")
+        } catch {
+          case rce: RenameCollisionException => BadRequest(views.html.editArticle(articleForm fill article, article)).flashing("error" -> rce.smth)
+          case rwe: RestrictedWordException => Redirect(routes.Application.wiki("RestrictedWords")).flashing("error" -> rwe.smth)
         }
-        Redirect(routes.Application.wiki(article.title))
       }
     )
   }

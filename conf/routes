@@ -4,8 +4,8 @@
 
 # Home page
 GET     /                           controllers.Application.index
-GET     /wiki                       controllers.Application.wiki(page="default")
-GET     /wiki/                      controllers.Application.wiki(page="default")
+GET     /wiki                       controllers.Application.wiki(page="Home")
+GET     /wiki/                      controllers.Application.wiki(page="Home")
 
 POST    /wiki/                      controllers.Application.wikiEditSave
 GET     /wiki/edit/*title           controllers.Application.wikiEdit(title)

@@ -9,14 +9,16 @@ import play.api.Logger
 import scala.util.parsing.combinator._
 import controllers.routes
 
+case class ArticleNotFoundException(smth:String)  extends Exception
+case class RestrictedWordException(smth:String)  extends Exception
+case class RenameCollisionException(smth:String)  extends Exception
 
 class Article(val id: Long, val title: String, val content: String) {
   
   val wikiTitle = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-_").toSet
   val wikiMarkup = "*-/_:~" toSet
   val lineBreak = sys.props("line.separator")
-  val reservedPageWords = List("New", "Unknown").toSet[String]
-  
+
   /**
    * @see parse(toGo, past, current, matching)
    */
@@ -132,32 +134,41 @@ class Article(val id: Long, val title: String, val content: String) {
 }
 
 object Article {
-  var parse = {
+  val parse = {
     get[Long]("id") ~
     get[String]("title") ~ 
     get[String]("content") map {
       case i~n~c => new Article(i, n, c)
     }
   }
+
+  val reservedPageWords = List("New", "Unknown").toSet[String]
     
   def save(name: String, content: String) {
+    val sensibleName = name.head.toUpper + name.tail
+    if (reservedPageWords(sensibleName)) {
+      throw throw RestrictedWordException("Can't create or rename a page to " + sensibleName)
+    }
     DB.withConnection{implicit c =>
       SQL("""
         select count(*) from tArticle where title = {title}
-      """).on('title -> name).as(scalar[Long].single) match {
+      """).on('title -> sensibleName).as(scalar[Long].single) match {
         case 0 => {
           DB.withConnection{implicit c =>
             SQL("""
               insert into tArticle (title, content) values ({title}, {content})
-            """).on('title -> name, 'content -> content).executeUpdate()
+            """).on('title -> sensibleName, 'content -> content).executeUpdate()
 
           }
         }
-        case _ => throw new Exception("Title already exists - Use edit instead")
+        case _ => throw RenameCollisionException("Title " + sensibleName + " already exists - Use edit instead")
       }
     }
   }
   def save(id: Long, name: String, content: String) {
+    if (reservedPageWords(name)) {
+      throw RestrictedWordException("Can't create or rename a page to " + name)
+    }
     DB.withConnection{implicit c =>
       SQL("""
         update tArticle set title = {title}, content = {content} where id = {id}
@@ -174,17 +185,18 @@ object Article {
   }
   
   def getArticleByName(name: String): Article = {
-    name match {
-      case "New" => new Article(-1, "", "") 
-      case "Unknown" => new Article(-1, "Not Found", "Page Not Found") 
-      case _ => {
-        DB.withConnection{ implicit c =>
-          SQL("""
-            select id, title, content from tArticle where title = {name}
-          """).on('name -> name).as(Article.parse.singleOpt) match {
-            case Some(x) => x 
-            case _ => new Article(-1, name, "") 
-          }
+    if (reservedPageWords(name)) {
+      name match {
+        case "New" => new Article(-1, "", "") 
+        case "Unknown" => new Article(-1, "Not Found", "Page Not Found") 
+      }
+    } else {
+      DB.withConnection{ implicit c =>
+        SQL("""
+          select id, title, content from tArticle where title = {name}
+        """).on('name -> name).as(Article.parse.singleOpt) match {
+          case Some(x) => x 
+          case _ => new Article(-1, name, "")
         }
       }
     }
