@@ -1,0 +1,8 @@
+@(article: Article)(implicit request: Request[AnyContent])
+
+@import helper._
+
+@main(article.title) {
+  <h1>@article.title</h1>
+  @Html(article.toHTML)
+}

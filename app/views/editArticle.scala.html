@@ -1,0 +1,25 @@
+@(editForm: Form[Article], article: Article)(implicit request: Request[AnyContent])
+
+@import helper._
+
+@main(article.title) {
+  <h1>Edit: @article.title</h1>
+  @helper.form(action = routes.Application.wikiEditSave) {
+    @inputText(
+      editForm("title"), 
+      'id -> "title",
+      'size -> 40,
+      '_showConstraints -> false,
+      '_help -> "Some help text",
+      '_label -> "Title", 
+      '_error -> editForm.globalError
+    )
+    
+    @textarea(
+      editForm("content"),
+      'rows -> 20, 'cols -> 120
+    )    
+    <input type="hidden" name="id" value="@editForm("id").value"/>
+    <input type="submit" value="Save" />
+  }
+}

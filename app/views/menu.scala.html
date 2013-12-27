@@ -1,0 +1,11 @@
+@(title: String)(implicit request: Request[AnyContent])
+
+<div id="menu">
+  <ul>
+    <li><a href="@routes.Application.wiki("Home")">Home</a></li>
+    <li><a href="@routes.Application.wikiEdit("New")">New Page</a></li>
+    @if(request.uri.toString != routes.Application.wikiEdit(title).toString || request.uri.toString != routes.Application.wikiEdit("New").toString) {
+      <li><a href="@routes.Application.wikiEdit(title)">Edit</a></li>
+    }
+  </ul>
+</div>
