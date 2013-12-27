@@ -48,7 +48,7 @@ class Article(val id: Long, val title: String, val content: String) {
           case ('h' :: '4' :: t) => ("<h4>" + parse(t)._1 + "</h4>", "")
           case ('h' :: '5' :: t) => ("<h5>" + parse(t)._1 + "</h5>", "")
           case ('h' :: '6' :: t) => ("<h6>" + parse(t)._1 + "</h6>", "")
-          case _ => parse(t, List(), List(), None)
+          case _ => parse(t)
         }
       }
       case (Some('$'), '|' :: t) => {
@@ -58,11 +58,11 @@ class Article(val id: Long, val title: String, val content: String) {
             else acc.init :+ (acc.last :+ i)
         }
         val parsedCols = for (s <- cols) yield {
-          "<td>" + parse(s, List(), List(), None)._1 + "</td>"
+          "<td>" + parse(s, List(), List(), Some('$'))._1 + "</td>"
         }
         ("<tr>" + parsedCols.dropRight(1).mkString + "</tr>", "table")
       }
-      case (Some('$'), _) => parse(toGo, List(), List(), None)
+      case (Some('$'), _) => parse(toGo)
       case (Some(':'), ':' :: t) => {
         val foundArticle = Article.getArticleByName(current.reverse.mkString)
         val title = t.takeWhile(x => wikiTitle(x))
