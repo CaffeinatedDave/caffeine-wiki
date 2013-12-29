@@ -88,22 +88,33 @@ class Article(val id: Long, val title: String, val content: String) {
         }
       }
       case (Some(x), y :: t) if (x == y) => {
-        val inner = parse(current.reverse)._1
-        // Sort out the wiki char mappings here
-        val wrapped = x match {
-          case '*' => "<span style=\"font-weight:bold;\">" + inner + "</span>"
-          case '/' => "<span style=\"font-style:italic\">" + inner + "</span>"
-          case '_' => "<span style=\"text-decoration:underline\">" + inner + "</span>"
-          case '-' => "<span style=\"text-decoration:line-through\">" + inner + "</span>"
-          case '~' => "<pre>" + current.reverse.mkString + "</pre>"
-          case _ => inner
+        // Should check that we're at the end of a word, not a hyphen, expression etc
+        t match {
+          case Nil | ' ' :: _ => {
+            val inner = parse(current.reverse)._1
+            // Sort out the wiki char mappings here
+            val wrapped = x match {
+              case '*' => "<span style=\"font-weight:bold;\">" + inner + "</span>"
+              case '/' => "<span style=\"font-style:italic\">" + inner + "</span>"
+              case '_' => "<span style=\"text-decoration:underline\">" + inner + "</span>"
+              case '-' => "<span style=\"text-decoration:line-through\">" + inner + "</span>"
+              case '~' => "<pre>" + current.reverse.mkString + "</pre>"
+              case _ => inner
+            }
+            parse(t, wrapped.toList.reverse ::: past, List(), None)
+          }  
+          case (y :: t) => parse(t, past, y :: current, Some(x))
         }
-        parse(t, wrapped.toList.reverse ::: past, List(), None)
       }
       case (Some(x), y :: t) => parse(t, past, y :: current, Some(x))
       case (Some(x), Nil) => parse(current.reverse, x :: past, List(), None)
-      case (None, w :: t) if (wikiMarkup(w)) => parse(t, current ::: past, List(), Some(w))
-      case (None, h :: t) => parse(t, past, h :: current, None)
+      case (None, h :: t) => {
+        if (wikiMarkup(h) && (past.isEmpty || past.head == ' ')) {
+          parse(t, current ::: past, List(), Some(h))
+        } else {
+          parse(t, past, h :: current, None)
+        }
+      } 
       case (None, Nil) => ((past.reverse ::: current.reverse) mkString, "p")
     }
   }
