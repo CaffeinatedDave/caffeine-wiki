@@ -4,8 +4,11 @@
   <ul>
     <li><a href="@routes.Application.wiki("Home")">Home</a></li>
     <li><a href="@routes.Application.wikiEdit("New")">New Page</a></li>
-    @if(request.uri.toString != routes.Application.wikiEdit(title).toString || request.uri.toString != routes.Application.wikiEdit("New").toString) {
+    @if(request.uri.toString != routes.Application.wikiEdit(title).toString
+    && request.uri.toString != routes.Application.wikiEdit("New").toString
+    && request.uri.toString != routes.Application.showRecent.toString) {
       <li><a href="@routes.Application.wikiEdit(title)">Edit</a></li>
     }
+    <li><a href="@routes.Application.showRecent">Recent</a></li>
   </ul>
 </div>

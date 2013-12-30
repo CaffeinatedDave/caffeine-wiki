@@ -69,5 +69,10 @@ object Application extends Controller {
       }
     )
   }
+  
+  def showRecent = Action { implicit request =>
+    val articleList = Article.getAll
+    Ok(views.html.recent(articleList))
+  }
 
 }

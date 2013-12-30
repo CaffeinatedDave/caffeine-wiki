@@ -21,8 +21,8 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
   val lineBreak = sys.props("line.separator")
 
   val editted = last_edit match{
-    case 0 => new Timestamp(System.currentTimeMillis)
-    case t => new Timestamp(t.toLong * 1000)
+    case 0 => new Timestamp(System.currentTimeMillis).toString.takeWhile(x => x != '.')
+    case t => new Timestamp(t.toLong * 1000).toString.takeWhile(x => x != '.')
   }
   
   /**
@@ -148,7 +148,10 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
   
   def toHTML: String = {
     parsedStringBuilder(for (l <- content.lines) yield parse(l.toList, List(), List(), Some('$')))
-    
+  }
+
+  def firstParagraph: String = {
+    parsedStringBuilder(for (l <- content.lines.takeWhile(x => x != "")) yield parse(l.toList, List(), List(), Some('$')))
   }
     
   override def toString: String = {
@@ -203,7 +206,7 @@ object Article {
   def getAll : List[Article] = {
     DB.withConnection{implicit c =>
       SQL("""
-        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle
+        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle order by last_edit DESC
       """).as(Article.parse*)
     }
   }

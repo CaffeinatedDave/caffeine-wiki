@@ -1,7 +1,6 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
@@ -9,6 +8,6 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET     /                           controllers.Application.wiki(page="Home")
 POST    /                           controllers.Application.wikiEditSave
 GET     /edit/*title                controllers.Application.wikiEdit(title)
-GET     /edit/*title                controllers.Application.wikiEdit(title)
+GET     /recent                     controllers.Application.showRecent
 GET     /*title                     controllers.Application.wiki(title)
 
