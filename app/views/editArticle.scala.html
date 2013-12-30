@@ -3,7 +3,7 @@
 @import helper._
 
 @main(article.title) {
-  <h1>Edit: @article.title</h1>
+  <h1 id="title">Edit: @article.title</h1>
   @helper.form(action = routes.Application.wikiEditSave) {
     @inputText(
       editForm("title"), 

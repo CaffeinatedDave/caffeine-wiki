@@ -8,17 +8,23 @@ import java.sql.SQLException
 import play.api.Logger
 import scala.util.parsing.combinator._
 import controllers.routes
+import java.sql.Timestamp
 
 case class ArticleNotFoundException(smth:String)  extends Exception
 case class RestrictedWordException(smth:String)  extends Exception
 case class RenameCollisionException(smth:String)  extends Exception
 
-class Article(val id: Long, val title: String, val content: String) {
+class Article(val id: Long, val title: String, val content: String, val last_edit: Double = 0) {
   
   val wikiTitle = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-_").toSet
   val wikiMarkup = "*-/_:~" toSet
   val lineBreak = sys.props("line.separator")
 
+  val editted = last_edit match{
+    case 0 => new Timestamp(System.currentTimeMillis)
+    case t => new Timestamp(t.toLong * 1000)
+  }
+  
   /**
    * @see parse(toGo, past, current, matching)
    */
@@ -62,7 +68,13 @@ class Article(val id: Long, val title: String, val content: String) {
         }
         ("<tr>" + parsedCols.dropRight(1).mkString + "</tr>", "table")
       }
-      case (Some('$'), _) => parse(toGo)
+      case (Some('$'), t) => {
+        if (t == List('-', '-')) {
+          ("<hr/>", "") 
+        } else {
+          parse(toGo)
+        }
+      }
       case (Some(':'), ':' :: t) => {
         val foundArticle = Article.getArticleByName(current.reverse.mkString)
         val title = t.takeWhile(x => wikiTitle(x))
@@ -148,8 +160,9 @@ object Article {
   val parse = {
     get[Long]("id") ~
     get[String]("title") ~ 
-    get[String]("content") map {
-      case i~n~c => new Article(i, n, c)
+    get[String]("content") ~
+    get[Double]("last_edit") map {
+      case i~n~c~l => new Article(i, n, c, l)
     }
   }
 
@@ -182,7 +195,7 @@ object Article {
     }
     DB.withConnection{implicit c =>
       SQL("""
-        update tArticle set title = {title}, content = {content} where id = {id}
+        update tArticle set title = {title}, content = {content}, last_edit = now() where id = {id}
       """).on('title -> name, 'content -> content, 'id -> id).executeUpdate()
     }
   }
@@ -190,7 +203,7 @@ object Article {
   def getAll : List[Article] = {
     DB.withConnection{implicit c =>
       SQL("""
-        select id, title, content from tArticle
+        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle
       """).as(Article.parse*)
     }
   }
@@ -204,7 +217,7 @@ object Article {
     } else {
       DB.withConnection{ implicit c =>
         SQL("""
-          select id, title, content from tArticle where title = {name}
+          select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle where title = {name}
         """).on('name -> name).as(Article.parse.singleOpt) match {
           case Some(x) => x 
           case _ => new Article(-1, name, "")
