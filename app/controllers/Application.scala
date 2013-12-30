@@ -5,6 +5,7 @@ import play.api.mvc._
 import models._
 import play.api.data._
 import play.api.data.Forms._
+import java.net.URLDecoder._
 
 object Application extends Controller {
 
@@ -24,7 +25,7 @@ object Application extends Controller {
 
   def wiki(page: String) = Action { implicit request =>
     try { 
-      val sensiblePage = page.head.toUpper + page.tail
+      val sensiblePage = decode(page.head.toUpper + page.tail, "utf-8")
       val article: Article = Article.getArticleByName(sensiblePage)
       article.id match {
         case -1 => Redirect(routes.Application.wikiEdit(sensiblePage)).flashing("error" -> "Page doesn't exist, why not create it?")
@@ -36,7 +37,7 @@ object Application extends Controller {
   }
 
   def wikiEdit(page: String) = Action { implicit request =>
-    val sensiblePage = page.head.toUpper + page.tail
+    val sensiblePage = decode(page.head.toUpper + page.tail, "utf-8")
     try {
       val article: Article = Article.getArticleByName(sensiblePage)
       article.id match {
@@ -55,9 +56,10 @@ object Application extends Controller {
       formWithErrors => BadRequest("I don't even know"),
       article => {
         try {
+          val sensibleTitle = decode(article.title.head.toUpper + article.title.tail, "utf-8")
           article.id match {
-            case -1 => Article.save(article.title, article.content)
-            case _ => Article.save(article.id, article.title, article.content)
+            case -1 => Article.save(sensibleTitle, article.content)
+            case _ => Article.save(article.id, sensibleTitle, article.content)
           }
           Redirect(routes.Application.wiki(article.title)).flashing("success" -> "Saved.")
         } catch {

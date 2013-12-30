@@ -166,7 +166,7 @@ object Article {
     }
   }
 
-  val reservedPageWords = List("New", "Unknown").toSet[String]
+  val reservedPageWords = List("New", "Unknown", "").toSet[String]
     
   def save(name: String, content: String) {
     val sensibleName = name.head.toUpper + name.tail
@@ -211,6 +211,7 @@ object Article {
   def getArticleByName(name: String): Article = {
     if (reservedPageWords(name)) {
       name match {
+        case "" => getArticleByName("Home") 
         case "New" => new Article(-1, "", "") 
         case "Unknown" => new Article(-1, "Not Found", "Page Not Found") 
       }
