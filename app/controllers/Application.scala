@@ -24,30 +24,37 @@ object Application extends Controller {
   }
 
   def wiki(page: String) = Action { implicit request =>
-    try { 
-      val sensiblePage = decode(page.head.toUpper + page.tail, "utf-8")
-      val article: Article = Article.getArticleByName(sensiblePage)
-      article.id match {
-        case -1 => Redirect(routes.Application.wikiEdit(sensiblePage)).flashing("error" -> "Page doesn't exist, why not create it?")
-        case _ => Ok(views.html.article(article))
+    val sensiblePage = decode(page.head.toUpper + page.tail, "utf-8")
+    Logger.info("Considering loading page for " + sensiblePage + " (was " + page + ")")
+    sensiblePage match {
+      case "Recent" => Redirect(routes.Application.showRecent)
+      case p => try {
+        val article: Article = Article.getArticleByName(p)
+        article.id match {
+          case -1 => Redirect(routes.Application.wikiEdit(p)).flashing("error" -> "Page doesn't exist, why not create it?")
+          case _ => Ok(views.html.article(article))
+        }
+      } catch {
+        case anfe: ArticleNotFoundException => Redirect(routes.Application.wikiEdit(page)).flashing("error" -> anfe.smth)
       }
-    } catch {
-      case anfe: ArticleNotFoundException => Redirect(routes.Application.wikiEdit(page)).flashing("error" -> anfe.smth)
     }
   }
 
   def wikiEdit(page: String) = Action { implicit request =>
     val sensiblePage = decode(page.head.toUpper + page.tail, "utf-8")
-    try {
-      val article: Article = Article.getArticleByName(sensiblePage)
-      article.id match {
-        case -1 => Ok(views.html.editArticle(articleForm fill (article), article)).flashing("error" -> "Page doesn't exist, why not create it?")
-        case _ => Ok(views.html.editArticle(articleForm fill (article), article))
-
+    Logger.info("Considering loading edit form for " + sensiblePage + " (was " + page + ")")
+    sensiblePage match {
+      case "Recent" => Redirect(routes.Application.showRecent).flashing("error" -> "Can't edit recent history this way...")
+      case p => try {
+        val article: Article = Article.getArticleByName(p)
+        article.id match {
+          case -1 => Ok(views.html.editArticle(articleForm fill (article), article)).flashing("error" -> "Page doesn't exist, why not create it?")
+          case _ => Ok(views.html.editArticle(articleForm fill (article), article))
+        }
+      } catch {
+        // Something here for when we have edit permissions and such 
+        case anfe: ArticleNotFoundException => Redirect(routes.Application.wiki("Home")).flashing("error" -> anfe.smth)
       }
-    } catch {
-      // Who knows whats going on... Panic.
-      case anfe: ArticleNotFoundException => Redirect(routes.Application.wiki("Home")).flashing("error" -> anfe.smth)
     }
   }
   

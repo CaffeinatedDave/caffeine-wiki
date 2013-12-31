@@ -169,7 +169,7 @@ object Article {
     }
   }
 
-  val reservedPageWords = List("New", "Unknown", "").toSet[String]
+  val reservedPageWords = List("New", "Unknown", "", "Recent").toSet[String]
     
   def save(name: String, content: String) {
     val sensibleName = name.head.toUpper + name.tail
