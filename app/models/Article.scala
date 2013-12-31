@@ -44,18 +44,17 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
     // There has to be a better way to do this....
     (matching, toGo) match {
       // Match whole line logic first
-      case (Some('$'), t) if t.startsWith(List(' ', ' ', ' ')) => {
-        t.dropWhile(x => x == ' ') match {
+      case (Some('$'), line) if line.startsWith(List(' ', ' ', ' ')) => {
+        line.dropWhile(x => x == ' ') match {
           case ('*' :: t) => ("<li>" + parse(t)._1 + "</li>", "ul")  
           case ('#' :: t) => ("<li>" + parse(t)._1 + "</li>", "ol")
-          case ('h' :: '1' :: t) => ("<h1>" + parse(t)._1 + "</h1>", "")
-          case ('h' :: '2' :: t) => ("<h2>" + parse(t)._1 + "</h2>", "")
-          case ('h' :: '3' :: t) => ("<h3>" + parse(t)._1 + "</h3>", "")
-          case ('h' :: '4' :: t) => ("<h4>" + parse(t)._1 + "</h4>", "")
-          case ('h' :: '5' :: t) => ("<h5>" + parse(t)._1 + "</h5>", "")
-          case ('h' :: '6' :: t) => ("<h6>" + parse(t)._1 + "</h6>", "")
+          case ('+' :: t) => {
+            val size = Math.min(5, t.takeWhile(x => x == '+').size) + 1
+            
+            ("<h" + size + ">" + parse(t.dropWhile(x => x == '+'))._1 + "</h" + size + ">", "")
+          }
           case ('~' :: t) => (t.mkString.replaceAll(" ", "&nbsp;") + "\n", "pre")
-          case _ => parse(t)
+          case _ => parse(line)
         }
       }
       case (Some('$'), '|' :: t) => {
