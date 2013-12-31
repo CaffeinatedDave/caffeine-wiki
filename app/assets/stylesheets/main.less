@@ -71,41 +71,61 @@ div {
   padding: 5px;
   background-color: #CCE;
   
-  &#menu {
+  &#menu, &#footer {
     margin: 0;
     position: fixed;
-    top:0px;
     left:10%;
     width: 80%;
     height: 2em;
     font-size: 0.9em;
     z-index: 9999;
-    border-bottom: 1px solid #333;
    
-    ul {
-      padding-left: 0;
-      margin: 0.5em;
-      margin-left: 0;
-      list-style-type: none;
-    
-      li {
-        float: left;
-        padding-left: 20px;
+    &#menu {
+      border-bottom: 1px solid #333;
+      top: 0;
+
+      ul {
+        padding-left: 0;
+        margin: 0.5em;
+        margin-left: 0;
+        list-style-type: none;
+      
+        li {
+          float: left;
+          padding-left: 20px;
+        }
+      }
+    }
+
+    &#footer {
+      border-top: 1px solid #333;
+      bottom: 0;
+      text-align:center;
+      
+      p {
+        margin: 0.525em;
+      }
+      
+      a {
+        text-decoration: none;
       }
     }
   }
   
   &#content {
-    top: 3em;
+    position:fixed;
+    top: 2em;
+    bottom: 2em;
     left: 10%;
     width: 80%;
     font-size: 0.9em;
+    overflow: auto;
     
     h1#title {
       font-size:150%;
       padding: 20px;
     }
-  }
+  }  
 }
 
 div.error {

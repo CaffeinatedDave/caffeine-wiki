@@ -16,7 +16,10 @@
         <div id="content">
         @if(flash.get("error")) {<div class="error">@flash.get("error")</div>}
         @if(flash.get("success")) {<div class="success">@flash.get("success")</div>}
-        @content
+          <div id="page">
+          @content
+          </div>
         </div>
+        @footer()
     </body>
 </html>
