@@ -67,20 +67,25 @@ textarea {
 }
 
 div {
-  margin: auto;
   margin-top: 5px;
   padding: 5px;
   background-color: #CCE;
-  border: 1px solid #333;
   
   &#menu {
+    margin: 0;
+    position: fixed;
+    top:0px;
+    left:10%;
     width: 80%;
     height: 2em;
     font-size: 0.9em;
+    z-index: 9999;
+    border-bottom: 1px solid #333;
    
     ul {
       padding-left: 0;
       margin: 0.5em;
+      margin-left: 0;
       list-style-type: none;
     
       li {
@@ -91,6 +96,8 @@ div {
   }
   
   &#content {
+    top: 3em;
+    left: 10%;
     width: 80%;
     font-size: 0.9em;
     
