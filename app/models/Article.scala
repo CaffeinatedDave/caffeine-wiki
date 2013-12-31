@@ -115,13 +115,13 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
             }
             parse(t, wrapped.toList.reverse ::: past, List(), None)
           }  
-          case (y :: t) => parse(t, past, y :: current, Some(x))
+          case _ => parse(t, past, y :: current, Some(x))
         }
       }
       case (Some(x), y :: t) => parse(t, past, y :: current, Some(x))
       case (Some(x), Nil) => parse(current.reverse, x :: past, List(), None)
       case (None, h :: t) => {
-        if (wikiMarkup(h) && (past.isEmpty || past.head == ' ')) {
+        if (wikiMarkup(h) && (current.isEmpty || current.head == ' ')) {
           parse(t, current ::: past, List(), Some(h))
         } else {
           parse(t, past, h :: current, None)
