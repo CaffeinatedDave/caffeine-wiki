@@ -16,13 +16,37 @@ case class RenameCollisionException(smth:String)  extends Exception
 
 class Article(val id: Long, val title: String, val content: String, val last_edit: Double = 0) {
   
-  val wikiTitle = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-_").toSet
+  val wikiTitle = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-_./:%?=").toSet
   val wikiMarkup = "*-/_:" toSet
   val lineBreak = sys.props("line.separator")
+  
+  val URLPattern = """^(https?://)?(.*\.)+.*/?.*$""".r
 
   val editted = last_edit match{
     case 0 => new Timestamp(System.currentTimeMillis).toString.takeWhile(x => x != '.')
     case t => new Timestamp(t.toLong * 1000).toString.takeWhile(x => x != '.')
+  }
+  
+  private def makePageLink(url: String, title: String): String = {
+    Logger.info("Seeing if " + url + " is a URL (" + URLPattern + ")")
+    URLPattern findFirstIn url match {
+      case Some(u) => "<a href=\"" + u + "\" target=\"_blank\"> " + title + "</a><span class=\"external\" title=\"External\">*</span>"
+      case None => {
+        // Might have missed this one... Edge cases r fun
+        val split = url.split(":")
+        split.size match {
+          case 2 => makePageLink(split(0), split(1))
+          case 1 => {
+            val foundArticle = Article.getArticleByName(url)
+            foundArticle.id match {
+              case -1 => "<a href=\"" + controllers.routes.Application.wikiEdit(foundArticle.title).url + "\" class=\"missing\"> " + title + "</a>"
+              case _ => "<a href=\"" + controllers.routes.Application.wiki(foundArticle.title).url + "\"> " + title + "</a>"
+            }
+          }
+          case _ => throw new Exception("I don't know what you've done, but stop it.")
+        }
+      }
+    }
   }
   
   /**
@@ -76,28 +100,23 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
         }
       }
       case (Some(':'), ':' :: t) => {
-        val foundArticle = Article.getArticleByName(current.reverse.mkString)
-        val title = t.takeWhile(x => wikiTitle(x))
-        val link:String = foundArticle.id match {
-          case -1 => "<a href=\"" + controllers.routes.Application.wikiEdit(foundArticle.title).url + "\" class=\"missing\"> " + title.mkString + "</a>"
-          case _ => "<a href=\"" + controllers.routes.Application.wiki(foundArticle.title).url + "\"> " + title.mkString + "</a>"
+        """^http(s?)$""".r findFirstIn current.reverse.mkString match {
+          case Some(x) => parse(t, past, ':' :: current, Some(':'))
+          case None => {
+            val title = t.takeWhile(x => wikiTitle(x))
+            val link = makePageLink(current.reverse.mkString, title.mkString)
+
+            parse(t.dropWhile(x => wikiTitle(x)), link.toList.reverse ::: past, List(), None)
+          }
         }
-        parse(t.dropWhile(x => wikiTitle(x)), link.toList.reverse ::: past, List(), None)
       }
-      case (Some(':'), c :: t) if (wikiTitle.apply(c) == false) => {
-        val foundArticle = Article.getArticleByName(current.reverse.mkString)
-        val link:String = foundArticle.id match {
-          case -1 => "<a href=\"" + controllers.routes.Application.wikiEdit(foundArticle.title).url + "\" class=\"missing\"> " + foundArticle.title + "</a>" + c
-          case _ => "<a href=\"" + controllers.routes.Application.wiki(foundArticle.title).url +"\"> " + foundArticle.title + "</a>" + c
-        }
-        parse(t, link.toList.reverse ::: past, List(), None)
+      case (Some(':'), c :: t) if (!wikiTitle(c)) => {
+        val link = makePageLink(current.reverse.mkString, current.reverse.mkString)
+        parse(t, link.toList.reverse ::: past, List(c), None)
       }
       case (Some(':'), Nil) => {
         val foundArticle = Article.getArticleByName(current.reverse.mkString)
-        foundArticle.id match {
-          case -1 => ("<a href=\"" + controllers.routes.Application.wikiEdit(foundArticle.title).url + "\" class=\"missing\"> " + foundArticle.title + "</a>", "p")
-          case _ => ("<a href=\"" + controllers.routes.Application.wiki(foundArticle.title).url +"\"> " + foundArticle.title + "</a>", "p")
-        }
+        (makePageLink(current.reverse.mkString, current.reverse.mkString), "p")
       }
       case (Some(x), y :: t) if (x == y) => {
         // Should check that we're at the end of a word, not a hyphen, expression etc
