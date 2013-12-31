@@ -54,7 +54,7 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
           case ('h' :: '4' :: t) => ("<h4>" + parse(t)._1 + "</h4>", "")
           case ('h' :: '5' :: t) => ("<h5>" + parse(t)._1 + "</h5>", "")
           case ('h' :: '6' :: t) => ("<h6>" + parse(t)._1 + "</h6>", "")
-          case ('~' :: t) => (t.mkString + "\n", "pre")
+          case ('~' :: t) => (t.mkString.replaceAll(" ", "&nbsp;") + "\n", "pre")
           case _ => parse(t)
         }
       }
