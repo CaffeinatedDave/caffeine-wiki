@@ -17,7 +17,7 @@ case class RenameCollisionException(smth:String)  extends Exception
 class Article(val id: Long, val title: String, val content: String, val last_edit: Double = 0) {
   
   val wikiTitle = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-_").toSet
-  val wikiMarkup = "*-/_:~" toSet
+  val wikiMarkup = "*-/_:" toSet
   val lineBreak = sys.props("line.separator")
 
   val editted = last_edit match{
@@ -54,6 +54,7 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
           case ('h' :: '4' :: t) => ("<h4>" + parse(t)._1 + "</h4>", "")
           case ('h' :: '5' :: t) => ("<h5>" + parse(t)._1 + "</h5>", "")
           case ('h' :: '6' :: t) => ("<h6>" + parse(t)._1 + "</h6>", "")
+          case ('~' :: t) => (t.mkString + "\n", "pre")
           case _ => parse(t)
         }
       }
@@ -110,7 +111,6 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
               case '/' => "<span style=\"font-style:italic\">" + inner + "</span>"
               case '_' => "<span style=\"text-decoration:underline\">" + inner + "</span>"
               case '-' => "<span style=\"text-decoration:line-through\">" + inner + "</span>"
-              case '~' => "<pre>" + current.reverse.mkString + "</pre>"
               case _ => inner
             }
             parse(t, wrapped.toList.reverse ::: past, List(), None)
