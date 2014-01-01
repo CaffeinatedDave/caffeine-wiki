@@ -61,6 +61,5 @@ Create your own homepage: Check out the :Formatting rules, and go wild"""),
       }
     })
   }
-  
 }
 

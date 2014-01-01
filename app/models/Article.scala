@@ -162,7 +162,7 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
         case ((s, tag), l) if tag == "p" => last = tag; "</" + l + "><" + tag + ">" + s + "<br/>"
         case ((s, tag), l) => last = tag; "</" + l + "><" + tag + ">" + s
       }
-    )).mkString
+    )).mkString + "</" + last + ">"
   } 
   
   def toHTML: String = {
