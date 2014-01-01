@@ -1,30 +1,22 @@
-import play.api._
-
-import models._
-import anorm._
+import play.api.GlobalSettings
+import models.Article
 
 object Global extends GlobalSettings {
-  
   override def onStart(app: Application) {
     InitialData.insert()
-  }
-  
+  }  
 }
 
 /**
- * Initial files to be imported 
+ * Initial wiki articles to be imported 
  */
 object InitialData {
-  
   def insert() = {
-    
-    if(Article.getAll.isEmpty) {
-      
-      Seq(
-        ("Home", """   +++Welcome to CaffeineWiki
+    Seq(
+      ("Home", """   +++Welcome to CaffeineWiki
 
 Create your own homepage: Check out the :Formatting rules, and go wild"""),
-        ("Formatting", """|*Markup*|*Appears*|*Description*|
+      ("Formatting", """|*Markup*|*Appears*|*Description*|
 |   ~*Text*|*Text*|Bold|
 |   ~_Text_|_Text_|Underlined|
 |   ~-Text-|-Text-|Strikethrough|
@@ -62,12 +54,12 @@ Create your own homepage: Check out the :Formatting rules, and go wild"""),
 |*Col1*|*Col2*|*Col3*|
 |1,1|1,2|1,3|
 |2,1|2,2|2,3|""")
-      ).foreach(x => {
-        Logger.info("Creating new article: " + x._1)
+    ).foreach(x => {
+      if (Article.getArticleByName(x._1).id == -1) {
+        Logger.info("Article not found: Creating default for " + x._1)
         Article.save(x._1, x._2)
-      })
-      
-    }
+      }
+    })
   }
   
 }
