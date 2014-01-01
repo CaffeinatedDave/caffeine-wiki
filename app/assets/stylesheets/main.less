@@ -107,15 +107,23 @@ div {
       font-size:150%;
       padding: 20px;
     }
+    
+    span.external {
+      font-size: 0.75em;
+      vertical-align: super;
+      color: @errorColor;
+    }
   }  
 }
 
 div.error {
-  border: 3px dotted @successColor;
+  margin: 10px 40px 0 40px;
+  border: 3px dotted @errorColor;
   color: @errorColor;
 }
 
 div.success {
+  margin: 10px 40px 0 40px;
   border: 3px dotted @successColor;
   color: @successColor;
 }
