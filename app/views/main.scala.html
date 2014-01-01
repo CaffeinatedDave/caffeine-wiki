@@ -1,25 +1,24 @@
-@(title: String, scripts: Html = Html(""))(content: Html)(implicit request: Request[AnyContent], flash: Flash)
+@(title: String)(content: Html)(implicit request: Request[AnyContent], flash: Flash)
 
 <!DOCTYPE html>
 
 <html>
     <head>
         <title>CaffeineWiki :: @title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/caffeineWiki.js")" type="text/javascript"></script>
-        @scripts
     </head>
     <body>
-        @menu(title)
         <div id="content">
+        @menu(title)
         @if(flash.get("error")) {<div class="error">@flash.get("error")</div>}
         @if(flash.get("success")) {<div class="success">@flash.get("success")</div>}
           <div id="page">
           @content
           </div>
-        </div>
         @footer()
+        </div>
     </body>
 </html>
