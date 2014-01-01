@@ -193,7 +193,7 @@ object Article {
   def save(name: String, content: String) {
     val sensibleName = name.head.toUpper + name.tail
     if (reservedPageWords(sensibleName)) {
-      throw throw RestrictedWordException("Can't create or rename a page to " + sensibleName)
+      throw throw RestrictedWordException("Can't create a page called " + sensibleName)
     }
     DB.withConnection{implicit c =>
       SQL("""
@@ -211,14 +211,31 @@ object Article {
       }
     }
   }
-  def save(id: Long, name: String, content: String) {
+  def save(id: Long, name: String, content: String, suppressEdit: Boolean = false) {
     if (reservedPageWords(name)) {
-      throw RestrictedWordException("Can't create or rename a page to " + name)
+      throw RestrictedWordException("Can't rename a page to " + name)
     }
-    DB.withConnection{implicit c =>
-      SQL("""
-        update tArticle set title = {title}, content = {content}, last_edit = now() where id = {id}
-      """).on('title -> name, 'content -> content, 'id -> id).executeUpdate()
+    getArticleById(id) match {
+      case None => save(name, content)
+      case Some(a) => {
+        if (suppressEdit) {
+          DB.withConnection{implicit c =>
+            SQL("""
+              update tArticle set title = {title}, content = {content} where id = {id}
+            """).on('title -> name, 'content -> content, 'id -> id).executeUpdate()
+          }
+        } else {
+          DB.withConnection{implicit c =>
+            SQL("""
+              update tArticle set title = {title}, content = {content}, last_edit = now() where id = {id}
+            """).on('title -> name, 'content -> content, 'id -> id).executeUpdate()
+          }
+        }
+        // Oh god the race conditions...
+        if (a.title != name) {
+          renameAllArticleLinks(a.title, name)
+        }
+      }
     }
   }
   
@@ -249,4 +266,37 @@ object Article {
     }
   }
 
+  def getArticleById(id: Long): Option[Article] = {
+    DB.withConnection{ implicit c =>
+      SQL("""
+        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle where id = {id}
+      """).on('id -> id).as(Article.parse.singleOpt)
+    }
+  }
+
+  /**
+   * Called after changing the title of an article. This should take
+   * all of the articles, search for the old title, then parse their 
+   * text to change old links to the new title.
+   * 
+   * Experimental at the minute, Regex doesn't behave as expected.
+   *  
+   * @param oldName String    The old title
+   * @param newName String    The new title 
+   * 
+   */
+  private def renameAllArticleLinks(oldName: String, newName: String) {
+    // Get all the Articles that we're going to change:
+    val search = "%:" + oldName + "%"
+    for (article <- DB.withConnection{ implicit c =>
+      SQL("""
+        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle where content like {searchString}
+      """).on('searchString -> search).as(Article.parse*)
+    }) {
+      // I'm not sure this is really robust enough...
+      val regString = """(^|\ |\r\n|\n):([^:\ ]+)""".r 
+      val newText = regString.replaceAllIn(article.content, m => m.toString.replaceAll(oldName, newName))
+      save(article.id, article.title, newText, true)
+    }
+  }
 }
