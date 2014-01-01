@@ -116,7 +116,8 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
       }
       case (Some(':'), Nil) => {
         val foundArticle = Article.getArticleByName(current.reverse.mkString)
-        (makePageLink(current.reverse.mkString, current.reverse.mkString), "p")
+        val link = makePageLink(current.reverse.mkString, current.reverse.mkString)
+        parse(Nil, link.toList.reverse ::: past, List(), None)
       }
       case (Some(x), y :: t) if (x == y) => {
         // Should check that we're at the end of a word, not a hyphen, expression etc
