@@ -1,4 +1,4 @@
-import play.api.GlobalSettings
+import play.api._
 import models.Article
 
 object Global extends GlobalSettings {
