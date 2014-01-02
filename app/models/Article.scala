@@ -294,7 +294,7 @@ object Article {
       """).on('searchString -> search).as(Article.parse*)
     }) {
       // I'm not sure this is really robust enough...
-      val regString = """(^|\ |\r\n|\n):([^:\ ]+)""".r 
+      val regString = """(^|\ |\||\r\n|\n):([^:\ ]+)""".r 
       val newText = regString.replaceAllIn(article.content, m => m.toString.replaceAll(oldName, newName))
       save(article.id, article.title, newText, true)
     }
