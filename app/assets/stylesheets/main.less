@@ -50,7 +50,7 @@ div {
   padding: 5px;
   
   &#menu {
-    background-color: @headerColor;
+    background-color: @emphasisColor;
     position: fixed;
     padding: 5px 0;
     margin: 0;
@@ -76,6 +76,8 @@ div {
   }
 
   &#footer {
+    position: relative;
+    background-color: @emphasisColor;
     margin: 0;
     padding: 0;
     border-top: 1px solid @textColor;
@@ -84,7 +86,8 @@ div {
     text-align:center;
       
     p {
-      margin: 0.525em;
+      padding: 0.525em;
+      margin: 0;
     }
       
     a {
@@ -130,8 +133,9 @@ div.success {
 
 hr {
   height: 1px;
-  color: @textColor;
-  background-color: @textColor;
+  color: #000;
+  border-width: 0;
+  background-color: #000;
   width: 88%;
 }
 
@@ -141,5 +145,5 @@ pre {
   padding: 3px;
   border: 1px solid darken(@backgroundColor, 40%);
   .rounded-corners();
-  background-color: darken(@backgroundColor, 15%);
+  background-color: @emphasisColor;
 }
