@@ -17,7 +17,7 @@ object Application extends Controller {
     )
     ((i, t, c) => new Article(i, t, c)) 
     ((article: Article) => Some((article.id.toInt, article.title, article.content))) 
-  )
+  )  
   
   def index = Action {
     Ok("Wiki is up!")
@@ -75,6 +75,28 @@ object Application extends Controller {
         }
       }
     )
+  }
+  
+  def delete(name: String) = Action { implicit request =>
+    val sensiblePage = decode(name.head.toUpper + name.tail, "utf-8")
+    Logger.info("Preparing deletion form for " + sensiblePage + " (was " + name + ")")
+    Article.getArticleByName(sensiblePage) match {
+      case a: Article if (a.id == -1) => Redirect(routes.Application.wiki("Home")).flashing("error" -> "Can't delete " .+ (sensiblePage) .+ (". Page not found."))
+      case a: Article => Ok(views.html.confirmDelete(a))
+    }
+  }
+  
+  def confirmDelete = Action { implicit request =>
+    try {
+      val id = request.body.asFormUrlEncoded.get("id")(0)
+      Article.removeArticleById(id.toLong)
+      Redirect(routes.Application.wiki("Home")).flashing("success" -> "Removed.")
+    } catch {
+      case snee: NoSuchElementException => Redirect(routes.Application.wiki("Home")).flashing("error" -> "This isn't valid.")
+      case nfe: NumberFormatException => Redirect(routes.Application.wiki("Home")).flashing("error" -> "Not a number, stop fucking with my forms.")
+      // Not a fan of generics, but I hate exception screens more...
+      case e: Throwable => Redirect(routes.Application.wiki("Home")).flashing("error" -> e.getMessage())
+    }
   }
   
   def showRecent = Action { implicit request =>

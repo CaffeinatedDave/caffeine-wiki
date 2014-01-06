@@ -8,6 +8,8 @@ GET     /Favicon.ico               controllers.Assets.at(path="/public", file="F
 # Home page
 GET     /                           controllers.Application.wiki(page="Home")
 POST    /                           controllers.Application.wikiEditSave
+GET     /delete/*title              controllers.Application.delete(title)
+POST    /delete                     controllers.Application.confirmDelete
 GET     /edit/*title                controllers.Application.wikiEdit(title)
 GET     /recent                     controllers.Application.showRecent
 GET     /*title                     controllers.Application.wiki(title)

@@ -273,6 +273,15 @@ object Article {
       """).on('id -> id).as(Article.parse.singleOpt)
     }
   }
+  
+  def removeArticleById(id: Long) {
+    // For the love of god add some permissions here!
+    DB.withConnection{ implicit c =>
+      SQL("""
+        delete from tArticle where id = {id}
+      """).on('id -> id).executeUpdate()
+    }
+  }
 
   /**
    * Called after changing the title of an article. This should take

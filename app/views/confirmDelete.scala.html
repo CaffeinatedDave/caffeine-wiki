@@ -1,0 +1,11 @@
+@(article: Article)(implicit request: Request[AnyContent], flash: Flash)
+
+@import helper._
+
+@main(article.title) {
+  <h1 id="title">Confirm deletion of @article.title</h1>
+  @helper.form(action = routes.Application.confirmDelete) {
+    <input type="hidden" name="id" value="@article.id"/>
+    <input type="submit" value="Delete" />
+  }
+}
