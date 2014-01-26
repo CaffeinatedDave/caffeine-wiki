@@ -1,12 +1,12 @@
-@(articleList: List[Article], search: String)(implicit request: Request[AnyContent], flash: Flash)
+@(articleList: List[Article], pageType: Symbol, search: String)(implicit request: Request[AnyContent], flash: Flash)
 
 @import helper._
 
 @main(Right("Article List")) {
-  @search match {
-    case "" => { <h1 id="title">Recently Updated:</h1> }
-    case x => { <h1 id="title">Articles matching @x:</h1> }
-  
+  @pageType match {
+    case 'all => { <h1 id="title">Recently Updated:</h1> }
+    case 'tag => { <h1 id="title">Articles with tag @search:</h1> }
+    case default => { <h1 id="title">Articles with @search</h1> }
   }
   @for(a <- articleList) {
     @articleSmall(a)

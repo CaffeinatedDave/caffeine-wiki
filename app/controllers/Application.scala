@@ -103,13 +103,13 @@ object Application extends Controller {
   
   def listRecent = Action { implicit request =>
     val articleList = Article.getAll
-    Ok(views.html.articleList(articleList, ""))
+    Ok(views.html.articleList(articleList, 'all, ""))
   }
   
   def listArticles(search: String = "") = Action { implicit request =>
     search match {
       case "" => Redirect(routes.Application.listRecent)
-      case x  => Ok(views.html.articleList(Tag.getArticlesWithTag(x), x))
+      case x  => Ok(views.html.articleList(Tag.getArticlesWithTag(x), 'tag, x))
     }
   }
   
