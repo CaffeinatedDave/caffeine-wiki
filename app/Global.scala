@@ -1,5 +1,5 @@
 import play.api._
-import models.Article
+import models._
 
 object Global extends GlobalSettings {
   override def onStart(app: Application) {
@@ -60,6 +60,8 @@ Create your own homepage: Check out the :Formatting rules, and go wild"""),
         Article.save(x._1, x._2)
       }
     })
+    
+    Seq("Test", "Dave", "Idea", "Main").foreach(x => {Tag.getTag(x)})
   }
 }
 

@@ -1,0 +1,12 @@
+@(tagList: List[(Tag, Long)])(implicit request: Request[AnyContent], flash: Flash)
+
+@import helper._
+
+@main(Right("Tag List")) {
+  <h1 id="title">List of all tags:</h1>
+  <ul>
+  @for(t <- tagList) {
+    <li><a href="@routes.Application.listArticles(t._1.name)">@t._1.name</a> (@t._2)</li>
+  }
+  </ul>
+}

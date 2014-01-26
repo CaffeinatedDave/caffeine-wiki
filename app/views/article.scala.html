@@ -2,7 +2,7 @@
 
 @import helper._
 
-@main(article.title) {
+@main(Left(article)) {
   <div style="float:right">Last Edit: @article.editted</div>
   <h1 id="title">@article.title</h1>
   @Html(article.toHTML)

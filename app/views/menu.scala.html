@@ -1,14 +1,18 @@
-@(title: String)(implicit request: Request[AnyContent], flash: Flash)
+@(article: Either[Article, String])(implicit request: Request[AnyContent], flash: Flash)
 
 <div id="menu">
   <ul>
     <li><a href="@routes.Application.wiki("Home")">Home</a></li>
     <li><a href="@routes.Application.wikiEdit("New")">New Page</a></li>
-    @if(request.uri.toString != routes.Application.wikiEdit(title).toString
-    && request.uri.toString != routes.Application.wikiEdit("New").toString
-    && request.uri.toString != routes.Application.showRecent.toString) {
-      <li><a href="@routes.Application.wikiEdit(title)">Edit</a></li>
+    @article match {
+      case Left(x) => {
+        @if(request.uri.toString != routes.Application.wikiEdit(x.title).toString
+          && request.uri.toString != routes.Application.wikiEdit("New").toString) {
+          <li><a href="@routes.Application.wikiEdit(x.title)">Edit</a></li>
+        }
+      }
+      case Right(x) => {  }
     }
-    <li><a href="@routes.Application.showRecent">Recent</a></li>
+    <li><a href="@routes.Application.listRecent">Recent</a></li>
   </ul>
 </div>

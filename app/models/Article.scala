@@ -21,6 +21,8 @@ class Article(val id: Long, val title: String, val content: String, val last_edi
   val lineBreak = sys.props("line.separator")
   
   val URLPattern = """^(https?://)?(.*\.)+.*/?.*$""".r
+  
+  val tags = Tag.getTagsForArticle(id)
 
   val editted = last_edit match{
     case 0 => new Timestamp(System.currentTimeMillis).toString.takeWhile(x => x != '.')

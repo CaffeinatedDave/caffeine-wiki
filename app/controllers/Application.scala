@@ -27,7 +27,8 @@ object Application extends Controller {
     val sensiblePage = decode(page.head.toUpper + page.tail, "utf-8")
     Logger.info("Considering loading page for " + sensiblePage + " (was " + page + ")")
     sensiblePage match {
-      case "Recent" => Redirect(routes.Application.showRecent)
+      case "Recent" => Redirect(routes.Application.listArticles(""))
+      case "Tag" => Redirect(routes.Application.listTags)
       case p => try {
         val article: Article = Article.getArticleByName(p)
         article.id match {
@@ -44,7 +45,8 @@ object Application extends Controller {
     val sensiblePage = decode(page.head.toUpper + page.tail, "utf-8")
     Logger.info("Considering loading edit form for " + sensiblePage + " (was " + page + ")")
     sensiblePage match {
-      case "Recent" => Redirect(routes.Application.showRecent).flashing("error" -> "Can't edit recent history this way...")
+      case "Recent" => Redirect(routes.Application.listArticles("")).flashing("error" -> "Can't edit recent history this way...")
+      case "Tag" => Redirect(routes.Application.listTags).flashing("error" -> "Can't edit tags this way...")
       case p => try {
         val article: Article = Article.getArticleByName(p)
         article.id match {
@@ -99,9 +101,20 @@ object Application extends Controller {
     }
   }
   
-  def showRecent = Action { implicit request =>
+  def listRecent = Action { implicit request =>
     val articleList = Article.getAll
-    Ok(views.html.recent(articleList))
+    Ok(views.html.articleList(articleList, ""))
   }
-
+  
+  def listArticles(search: String = "") = Action { implicit request =>
+    search match {
+      case "" => Redirect(routes.Application.listRecent)
+      case x  => Ok(views.html.articleList(Tag.getArticlesWithTag(x), x))
+    }
+  }
+  
+  def listTags = Action { implicit request =>
+    val tagList = Tag.getAllTags
+    Ok(views.html.tags(tagList))
+  }
 }

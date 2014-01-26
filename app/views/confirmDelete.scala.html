@@ -2,7 +2,7 @@
 
 @import helper._
 
-@main(article.title) {
+@main(Right("Delete " + article.title + "?")) {
   <h1 id="title">Confirm deletion of @article.title</h1>
   @helper.form(action = routes.Application.confirmDelete) {
     <input type="hidden" name="id" value="@article.id"/>

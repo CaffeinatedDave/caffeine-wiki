@@ -1,3 +1,13 @@
+@(article: Either[Article, String])
+
 <div id="footer">
+  @article match {
+    case Left(x) => {
+      @for(t <- x.tags) { 
+        <a href="@routes.Application.listArticles(t.name)">@t.name</a>
+      }
+    }
+    case Right(x) => { }
+  }
   <p>&copy;<a href="http://www.caffeinateddave.com" target="_blank">CaffeinatedDave</a> 2013</p>
 </div>
