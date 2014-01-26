@@ -6,7 +6,9 @@
   <h1 id="title">List of all tags:</h1>
   <ul>
   @for(t <- tagList) {
-    <li><a href="@routes.Application.listArticles(t._1.name)">@t._1.name</a> (@t._2)</li>
+    <li><a href="@routes.Application.listArticles(t._1.name)">@t._1.name</a> (@t._2)
+    @if(t._2 == 0) { <a href="@routes.Application.deleteTag(t._1.name)">Remove?</a> }
+    </li>
   }
   </ul>
 }

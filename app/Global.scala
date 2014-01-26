@@ -61,7 +61,7 @@ Create your own homepage: Check out the :Formatting rules, and go wild"""),
       }
     })
     
-    Seq("Test", "Dave", "Idea", "Main").foreach(x => {Tag.getTag(x)})
+    Seq("Main").foreach(x => {Tag.getTag(x)})
   }
 }
 

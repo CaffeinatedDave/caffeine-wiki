@@ -110,4 +110,18 @@ object Tag {
     )
   }
   
+  def deleteTag(tag: String): Boolean = {
+    getArticlesWithTag(tag).size match {
+      case 0 => {
+        DB.withConnection(implicit c =>
+          SQL("""
+            delete from tTag where tag = {tag}
+          """).on('tag -> tag).executeUpdate
+        )
+        true
+      }
+      case _ => false
+    }
+  }
+  
 }

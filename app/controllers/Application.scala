@@ -117,4 +117,11 @@ object Application extends Controller {
     val tagList = Tag.getAllTags
     Ok(views.html.tags(tagList))
   }
+  
+  def deleteTag(tag: String) = Action { implicit request =>
+    Tag.deleteTag(tag) match {
+      case true => Redirect(routes.Application.listTags).flashing("success" -> ("Tag " + tag + " deleted."))
+      case false => Redirect(routes.Application.listTags).flashing("error" -> ("Tag " + tag + " cannot be removed."))
+    }
+  }
 }
