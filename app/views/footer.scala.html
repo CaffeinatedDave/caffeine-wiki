@@ -3,9 +3,13 @@
 <div id="footer">
   @article match {
     case Left(x) => {
+      <p id="tagList">
       @for(t <- x.tags) { 
         <a href="@routes.Application.listArticles(t.name)">@t.name</a>
       }
+      </p>
+      <input type="hidden" name="article" value="@x.id" id="articleId" />
+      <input type="text" size="10" maxlength="32" name="tag" id="addTag" />
     }
     case Right(x) => { }
   }

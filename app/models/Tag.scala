@@ -44,6 +44,7 @@ object Tag {
           inner join tTag t
             on (t.id = ta.tag_id)
         where ta.article_id = {id}
+        order by t.tag ASC
       """).on('id -> id).as(Tag.parse.*)
     )
   }
