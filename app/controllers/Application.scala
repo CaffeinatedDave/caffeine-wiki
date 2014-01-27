@@ -107,7 +107,7 @@ object Application extends Controller {
   }
   
   def listArticles(search: String = "") = Action { implicit request =>
-    search match {
+    decode(search) match {
       case "" => Redirect(routes.Application.listRecent)
       case x  => Ok(views.html.articleList(Tag.getArticlesWithTag(x), 'tag, x))
     }
