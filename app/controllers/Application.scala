@@ -110,7 +110,7 @@ object Application extends Controller with Secured {
   
   def listRecent = Action { implicit request =>
     val articleList = Article.getAll
-    Ok(views.html.articleList(User.getByUsername(Security.username), articleList, 'all, ""))
+    Ok(views.html.articleList(loggedInUser(request), articleList, 'all, ""))
   }
   
   def listArticles(search: String = "") = Action { implicit request =>
