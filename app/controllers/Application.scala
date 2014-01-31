@@ -7,7 +7,7 @@ import play.api.data._
 import play.api.data.Forms._
 import java.net.URLDecoder._
 
-object Application extends Controller {
+object Application extends Controller with Secured {
 
   val articleForm = Form(
     mapping(
@@ -21,8 +21,15 @@ object Application extends Controller {
   
   def index = Action {
     Ok("Wiki is up!")
-  }
 
+  }
+  def loggedInUser(request: Request[AnyContent]) : Option[User] = {
+    request.session.get(Security.username) match {
+      case Some(u) => User.getByUsername(u)
+      case None => None
+    }
+  }
+  
   def wiki(page: String) = Action { implicit request =>
     val sensiblePage = decode(page.head.toUpper + page.tail, "utf-8")
     Logger.info("Considering loading page for " + sensiblePage + " (was " + page + ")")
@@ -33,7 +40,7 @@ object Application extends Controller {
         val article: Article = Article.getArticleByName(p)
         article.id match {
           case -1 => Redirect(routes.Application.wikiEdit(p)).flashing("error" -> "Page doesn't exist, why not create it?")
-          case _ => Ok(views.html.article(article))
+          case _ => Ok(views.html.article(loggedInUser(request), article))
         }
       } catch {
         case anfe: ArticleNotFoundException => Redirect(routes.Application.wikiEdit(page)).flashing("error" -> anfe.smth)
@@ -41,7 +48,7 @@ object Application extends Controller {
     }
   }
 
-  def wikiEdit(page: String) = Action { implicit request =>
+  def wikiEdit(page: String) = withUser { user => implicit request =>
     val sensiblePage = decode(page.head.toUpper + page.tail, "utf-8")
     Logger.info("Considering loading edit form for " + sensiblePage + " (was " + page + ")")
     sensiblePage match {
@@ -50,8 +57,8 @@ object Application extends Controller {
       case p => try {
         val article: Article = Article.getArticleByName(p)
         article.id match {
-          case -1 => Ok(views.html.editArticle(articleForm fill (article), article)).flashing("error" -> "Page doesn't exist, why not create it?")
-          case _ => Ok(views.html.editArticle(articleForm fill (article), article))
+          case -1 => Ok(views.html.editArticle(user, articleForm fill (article), article)).flashing("error" -> "Page doesn't exist, why not create it?")
+          case _ => Ok(views.html.editArticle(user, articleForm fill (article), article))
         }
       } catch {
         // Something here for when we have edit permissions and such 
@@ -60,7 +67,7 @@ object Application extends Controller {
     }
   }
   
-  def wikiEditSave = Action { implicit request => 
+  def wikiEditSave = withUser { user => implicit request => 
     articleForm.bindFromRequest.fold(
       formWithErrors => BadRequest("I don't even know"),
       article => {
@@ -72,23 +79,23 @@ object Application extends Controller {
           }
           Redirect(routes.Application.wiki(article.title)).flashing("success" -> "Saved.")
         } catch {
-          case rce: RenameCollisionException => BadRequest(views.html.editArticle(articleForm fill article, article)).flashing("error" -> rce.smth)
+          case rce: RenameCollisionException => BadRequest(views.html.editArticle(user, articleForm fill article, article)).flashing("error" -> rce.smth)
           case rwe: RestrictedWordException => Redirect(routes.Application.wiki("RestrictedWords")).flashing("error" -> rwe.smth)
         }
       }
     )
   }
   
-  def delete(name: String) = Action { implicit request =>
+  def delete(name: String) = withUser { user => implicit request =>
     val sensiblePage = decode(name.head.toUpper + name.tail, "utf-8")
     Logger.info("Preparing deletion form for " + sensiblePage + " (was " + name + ")")
     Article.getArticleByName(sensiblePage) match {
       case a: Article if (a.id == -1) => Redirect(routes.Application.wiki("Home")).flashing("error" -> "Can't delete " .+ (sensiblePage) .+ (". Page not found."))
-      case a: Article => Ok(views.html.confirmDelete(a))
+      case a: Article => Ok(views.html.confirmDelete(user, a))
     }
   }
   
-  def confirmDelete = Action { implicit request =>
+  def confirmDelete = withUser { user => implicit request =>
     try {
       val id = request.body.asFormUrlEncoded.get("id")(0)
       Article.removeArticleById(id.toLong)
@@ -103,22 +110,22 @@ object Application extends Controller {
   
   def listRecent = Action { implicit request =>
     val articleList = Article.getAll
-    Ok(views.html.articleList(articleList, 'all, ""))
+    Ok(views.html.articleList(User.getByUsername(Security.username), articleList, 'all, ""))
   }
   
   def listArticles(search: String = "") = Action { implicit request =>
     decode(search) match {
       case "" => Redirect(routes.Application.listRecent)
-      case x  => Ok(views.html.articleList(Tag.getArticlesWithTag(x), 'tag, x))
+      case x  => Ok(views.html.articleList(loggedInUser(request), Tag.getArticlesWithTag(x), 'tag, x))
     }
   }
   
   def listTags = Action { implicit request =>
     val tagList = Tag.getAllTags
-    Ok(views.html.tags(tagList))
+    Ok(views.html.tags(loggedInUser(request), tagList))
   }
   
-  def deleteTag(tag: String) = Action { implicit request =>
+  def deleteTag(tag: String) = withUser { user => implicit request =>
     Tag.deleteTag(tag) match {
       case true => Redirect(routes.Application.listTags).flashing("success" -> ("Tag " + tag + " deleted."))
       case false => Redirect(routes.Application.listTags).flashing("error" -> ("Tag " + tag + " cannot be removed."))

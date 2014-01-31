@@ -5,6 +5,11 @@
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET     /Favicon.ico               controllers.Assets.at(path="/public", file="Favicon.ico")
 
+# Login
+POST    /login                      controllers.Authentication.login
+GET     /logout                     controllers.Authentication.logout
+
+
 # Home page
 GET     /                           controllers.Application.wiki(page="Home")
 POST    /                           controllers.Application.wikiEditSave

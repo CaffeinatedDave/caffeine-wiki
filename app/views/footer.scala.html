@@ -1,4 +1,4 @@
-@(article: Either[Article, String])
+@(user: Option[User], article: Either[Article, String])
 
 <div id="footer">
   @article match {
@@ -8,8 +8,13 @@
         <a href="@routes.Application.listArticles(t.name)">@t.name</a>
       }
       </p>
-      <input type="hidden" name="article" value="@x.id" id="articleId" />
-      <input type="text" size="10" maxlength="32" name="tag" id="addTag" />
+      @user match {
+        case Some(u) => {
+          <input type="hidden" name="article" value="@x.id" id="articleId" />
+          <input type="text" size="10" maxlength="32" name="tag" id="addTag" />
+        }
+        case None => { }
+      }
     }
     case Right(x) => { }
   }

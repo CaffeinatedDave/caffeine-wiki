@@ -1,8 +1,8 @@
-@(articleList: List[Article], pageType: Symbol, search: String)(implicit request: Request[AnyContent], flash: Flash)
+@(user: Option[User], articleList: List[Article], pageType: Symbol, search: String)(implicit request: Request[AnyContent], flash: Flash)
 
 @import helper._
 
-@main(Right("Article List")) {
+@main(user, Right("Article List")) {
   @pageType match {
     case 'all => { <h1 id="title">Recently Updated:</h1> }
     case 'tag => { <h1 id="title">Articles with tag @search:</h1> }

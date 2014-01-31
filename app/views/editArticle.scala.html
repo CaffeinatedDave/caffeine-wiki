@@ -1,8 +1,8 @@
-@(editForm: Form[Article], article: Article)(implicit request: Request[AnyContent], flash: Flash)
+@(user: User, editForm: Form[Article], article: Article)(implicit request: Request[AnyContent], flash: Flash)
 
 @import helper._
 
-@main(Left(article)) {
+@main(Some(user), Left(article)) {
   <h1 id="title">Edit: @article.title</h1>
   @helper.form(action = routes.Application.wikiEditSave) {
     @inputText(

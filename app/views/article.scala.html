@@ -1,8 +1,8 @@
-@(article: Article)(implicit request: Request[AnyContent], flash: Flash)
+@(user: Option[User], article: Article)(implicit request: Request[AnyContent], flash: Flash)
 
 @import helper._
 
-@main(Left(article)) {
+@main(user, Left(article)) {
   <div style="float:right">Last Edit: @article.editted</div>
   <h1 id="title">@article.title</h1>
   @Html(article.toHTML)

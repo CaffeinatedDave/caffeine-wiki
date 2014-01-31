@@ -1,8 +1,8 @@
-@(tagList: List[(Tag, Long)])(implicit request: Request[AnyContent], flash: Flash)
+@(user: Option[User], tagList: List[(Tag, Long)])(implicit request: Request[AnyContent], flash: Flash)
 
 @import helper._
 
-@main(Right("Tag List")) {
+@main(user, Right("Tag List")) {
   <h1 id="title">List of all tags:</h1>
   <ul>
   @for(t <- tagList) {

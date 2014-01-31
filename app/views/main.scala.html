@@ -1,4 +1,4 @@
-@(article: Either[Article, String])(content: Html)(implicit request: Request[AnyContent], flash: Flash)
+@(user: Option[User], article: Either[Article, String])(content: Html)(implicit request: Request[AnyContent], flash: Flash)
 
 <!DOCTYPE html>
 
@@ -17,13 +17,13 @@
     </head>
     <body>
         <div id="content">
-        @menu(article)
+        @menu(user, article)
         @if(flash.get("error")) {<div class="error">@flash.get("error")</div>}
         @if(flash.get("success")) {<div class="success">@flash.get("success")</div>}
           <div id="page">
           @content
           </div>
-        @footer(article)
+        @footer(user, article)
         </div>
     </body>
 </html>

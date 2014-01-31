@@ -1,5 +1,9 @@
 import play.api._
 import models._
+import play.api.db._
+import play.api.Play.current
+import anorm._
+import anorm.SqlParser._
 
 object Global extends GlobalSettings {
   override def onStart(app: Application) {
@@ -62,6 +66,20 @@ Create your own homepage: Check out the :Formatting rules, and go wild"""),
     })
     
     Seq("Main").foreach(x => {Tag.getTag(x)})
+
+    // Add my own user - yeah its in github, but if you want to create the whole rainbow table to figure out my password go ahead....
+    User.getByUsername("caffeinateddave") match {
+      case None => DB.withConnection {implicit c =>
+        SQL("""
+          insert into tUser (username, password, salt, email) 
+            values ({name}, {pass}, {salt}, {email})
+        """)
+        .on('name -> "caffeinateddave", 'pass -> "91FCE24019FDC65EC763922797F476E1", 'salt -> "vwykJvOsSQaiXHXz", 'email -> "dave@caffeinateddave.com")
+        .executeUpdate
+      }
+      case Some(x) => {}
+    }
+
   }
 }
 

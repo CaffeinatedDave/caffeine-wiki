@@ -1,19 +1,34 @@
-@(article: Either[Article, String])(implicit request: Request[AnyContent], flash: Flash)
+@(user: Option[User], article: Either[Article, String])(implicit request: Request[AnyContent], flash: Flash)
 
 <div id="menu">
   <ul>
     <li><a href="@routes.Application.wiki("Home")">Home</a></li>
-    <li><a href="@routes.Application.wikiEdit("New")">New Page</a></li>
-    @article match {
-      case Left(x) => {
+    @user match {
+      case Some(u) => { <li><a href="@routes.Application.wikiEdit("New")">New Page</a></li> }
+      case None => { }
+    }
+    @(user, article) match {
+      case (Some(u), Left(x)) => {
         @if(request.uri.toString != routes.Application.wikiEdit(x.title).toString
           && request.uri.toString != routes.Application.wikiEdit("New").toString) {
           <li><a href="@routes.Application.wikiEdit(x.title)">Edit</a></li>
         }
       }
-      case Right(x) => {  }
+      case _ => {  }
     }
     <li><a href="@routes.Application.listRecent">Recent</a></li>
     <li><a href="@routes.Application.listTags">Tags</a></li>
   </ul>
+  @user match {
+    case Some(u) => { 
+      <p style="float: right"><span> @u.name </span>
+      <a href="@routes.Authentication.logout">Logout</a>
+      </p> 
+    }
+    case None => {
+      <form style="float:right" action="@routes.Authentication.login" method="POST">
+        <input type="text" name="username" /> <input type="password" name="password" /> <input type="submit" value="Login" />
+      </form>
+    }
+  }
 </div>
