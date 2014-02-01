@@ -15,8 +15,9 @@ GET     /                           controllers.Application.wiki(page="Home")
 POST    /edit/preview               controllers.Application.wikiEditPreview
 POST    /edit                       controllers.Application.wikiEditSave
 GET     /tag                        controllers.Application.listTags
-POST    /tag                        controllers.RestAPI.addTag
-POST    /tag/delete                 controllers.RestAPI.removeTag
+POST    /tag                        controllers.RestTagAPI.addTag
+POST    /tag/delete                 controllers.RestTagAPI.removeTag
+POST    /article/lock               controllers.RestArticleAPI.changeLock
 GET     /tag/delete/*tag            controllers.Application.deleteTag(tag)
 GET     /tag/*tag                   controllers.Application.listArticles(tag)
 GET     /delete/*title              controllers.Application.delete(title)

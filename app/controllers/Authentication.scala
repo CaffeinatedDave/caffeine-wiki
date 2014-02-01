@@ -61,5 +61,5 @@ trait Secured {
       case None => onUnauthorized(request)
     }
   }
-
+  
 }

@@ -9,6 +9,6 @@
     case default => { <h1 id="title">Articles with @search</h1> }
   }
   @for(a <- articleList) {
-    @articleSmall(a)
+    @articleSmall(user, a)
   }
 }

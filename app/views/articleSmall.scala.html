@@ -1,3 +1,9 @@
-@(article: Article)(implicit request: Request[AnyContent], flash: Flash)
+@(user: Option[User], article: Article)(implicit request: Request[AnyContent], flash: Flash)
 
-<p class="title">@article.editted: <a href="@routes.Application.wiki(article.title)">@article.title</a></p>
+<p class="title">
+@user match {
+  case Some(_) => {<img class="lockArticle" data-article-id="@article.id" src="@if(article.locked) {@routes.Assets.at("images/locked.png")} else {@routes.Assets.at("images/unlocked.png")}" />}
+  case _ => { }
+}
+<a href="@routes.Application.wiki(article.title)">@article.title</a>
+</p>

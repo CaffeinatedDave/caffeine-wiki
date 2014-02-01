@@ -23,6 +23,26 @@ jQuery(document).ready(function () {
     }
   });
 
+  jQuery(".lockArticle").click(function() {
+    var id = Number(jQuery(this).data("article-id"));
+    if (id != "") {
+      jQuery.ajax({
+        url: "/article/lock",
+        type: "POST",
+        data: JSON.stringify({"id": id}),
+        contentType: "application/json; charset=UTF-8"
+      }).fail(function(x,t,e) {
+        // Catch this?
+        console.log(e);
+      }).done(function(data) {
+        console.log(data);
+        jQuery(".lockArticle[data-article-id='"+id+"']").attr("src", (data === "L") ? "/assets/images/locked.png" : "/assets/images/unlocked.png");
+      })
+    } else {
+      console.log("No id...");
+    }
+  });
+
   var doDelete = function() {
     var id = Number(jQuery("#articleId").val());
     var tag = jQuery(this).parent().find("a").html();

@@ -6,6 +6,7 @@ import models._
 import play.api.data._
 import play.api.data.Forms._
 import java.net.URLDecoder._
+import java.net.URL
 
 object Application extends Controller with Secured {
 
@@ -38,9 +39,18 @@ object Application extends Controller with Secured {
       case "Tag" => Redirect(routes.Application.listTags)
       case p => try {
         val article: Article = Article.getArticleByName(p)
-        article.id match {
-          case -1 => Redirect(routes.Application.wikiEdit(p)).flashing("error" -> "Page doesn't exist, why not create it?")
-          case _ => Ok(views.html.article(loggedInUser(request), article))
+        (article.locked, article.id) match {
+          case (_, -1) => Redirect(routes.Application.wikiEdit(p)).flashing("error" -> "Page doesn't exist, why not create it?")
+          case (true, _) => {
+            val user = loggedInUser(request)
+            user match {
+              case Some(_) => Ok(views.html.article(user, article))
+              case None => {
+                Redirect(routes.Application.wiki("")).flashing("error" -> "Forbidden")
+              }
+            }
+          }
+          case (false, _) => Ok(views.html.article(loggedInUser(request), article))
         }
       } catch {
         case anfe: ArticleNotFoundException => Redirect(routes.Application.wikiEdit(page)).flashing("error" -> anfe.smth)
@@ -119,20 +129,34 @@ object Application extends Controller with Secured {
   }
   
   def listRecent = Action { implicit request =>
-    val articleList = Article.getAll
-    Ok(views.html.articleList(loggedInUser(request), articleList, 'all, ""))
+    val user = loggedInUser(request)
+    val articleList = user match {
+      case Some(_) => Article.getAll(true)
+      case _ => Article.getAll(false)
+    }
+    Ok(views.html.articleList(user, articleList, 'all, ""))
   }
   
   def listArticles(search: String = "") = Action { implicit request =>
+    val user = loggedInUser(request)
     decode(search, "utf-8") match {
       case "" => Redirect(routes.Application.listRecent)
-      case x  => Ok(views.html.articleList(loggedInUser(request), Tag.getArticlesWithTag(x), 'tag, x))
+      case x  => {
+        user match {
+          case Some(_) => Ok(views.html.articleList(user, Tag.getArticlesWithTag(x, true), 'tag, x))
+          case None => Ok(views.html.articleList(user, Tag.getArticlesWithTag(x, false), 'tag, x))
+        }
+      }
     }
   }
   
   def listTags = Action { implicit request =>
-    val tagList = Tag.getAllTags
-    Ok(views.html.tags(loggedInUser(request), tagList))
+    val user = loggedInUser(request)
+    val tagList = user match {
+      case Some(_) => Tag.getAllTags(true)
+      case None => Tag.getAllTags(false)
+    }
+    Ok(views.html.tags(user, tagList))
   }
   
   def deleteTag(tag: String) = withUser { user => implicit request =>

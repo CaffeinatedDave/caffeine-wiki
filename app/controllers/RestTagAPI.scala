@@ -9,7 +9,7 @@ import play.api.data._
 import play.api.data.Forms._
 import java.net.URLDecoder._
 
-object RestAPI extends Controller {
+object RestTagAPI extends Controller {
   implicit val rds = (
     (__ \ 'id).read[Long] and
     (__ \ 'tag).read[String]
@@ -39,4 +39,14 @@ object RestAPI extends Controller {
     }
   }
   
+  def switchTagState = Action(parse.json) { request =>
+    request.body.validate[(Long, String)].map{
+      case (id, tag) => {
+        
+        Ok("")
+      }
+    }.recoverTotal{
+      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
+    }
+  }
 }

@@ -14,7 +14,7 @@ case class ArticleNotFoundException(smth:String)  extends Exception
 case class RestrictedWordException(smth:String)  extends Exception
 case class RenameCollisionException(smth:String)  extends Exception
 
-class Article(val id: Long, val title: String, val content: String, val last_edit: Double = 0) {
+class Article(val id: Long, val title: String, val content: String, val last_edit: Double = 0, val locked: Boolean = false) {
   
   val wikiTitle = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-_./:%?=").toSet
   val wikiMarkup = "*-/_:" toSet
@@ -185,8 +185,10 @@ object Article {
     get[Long]("id") ~
     get[String]("title") ~ 
     get[String]("content") ~
-    get[Double]("last_edit") map {
-      case i~n~c~l => new Article(i, n, c, l)
+    get[Double]("last_edit") ~
+    get[String]("locked") map {
+      case i~n~c~e~l if (l == "L") => new Article(i, n, c, e, true)
+      case i~n~c~e~l => new Article(i, n, c, e, false)
     }
   }
 
@@ -241,11 +243,12 @@ object Article {
     }
   }
   
-  def getAll : List[Article] = {
+  def getAll(locked: Boolean) : List[Article] = {
+    val articleLocked = if (locked) "%" else "U"
     DB.withConnection{implicit c =>
       SQL("""
-        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle order by last_edit DESC
-      """).as(Article.parse*)
+        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit, locked from tArticle where locked like {locked} order by last_edit DESC
+      """).on('locked -> articleLocked).as(Article.parse*)
     }
   }
   
@@ -253,16 +256,16 @@ object Article {
     if (reservedPageWords(name)) {
       name match {
         case "" => getArticleByName("Home") 
-        case "New" => new Article(-1, "", "") 
-        case "Unknown" => new Article(-1, "Not Found", "Page Not Found") 
+        case "New" => new Article(-1, "", "", 0, false) 
+        case "Unknown" => new Article(-1, "Not Found", "Page Not Found", 0, false) 
       }
     } else {
       DB.withConnection{ implicit c =>
         SQL("""
-          select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle where title = {name}
+          select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit, locked from tArticle where title = {name}
         """).on('name -> name).as(Article.parse.singleOpt) match {
           case Some(x) => x 
-          case _ => new Article(-1, name, "")
+          case _ => new Article(-1, name, "", 0, false)
         }
       }
     }
@@ -271,7 +274,7 @@ object Article {
   def getArticleById(id: Long): Option[Article] = {
     DB.withConnection{ implicit c =>
       SQL("""
-        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle where id = {id}
+        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit, locked from tArticle where id = {id}
       """).on('id -> id).as(Article.parse.singleOpt)
     }
   }
@@ -280,7 +283,7 @@ object Article {
     // For the love of god add some permissions here!
     DB.withConnection{ implicit c =>
       SQL("""
-        delete from tArticle where id = {id}
+        delete from tArticle where id = {id} and locked = 'U'
       """).on('id -> id).executeUpdate()
     }
   }
@@ -301,7 +304,7 @@ object Article {
     val search = "%:" + oldName + "%"
     for (article <- DB.withConnection{ implicit c =>
       SQL("""
-        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit from tArticle where content like {searchString}
+        select id, title, content, EXTRACT(EPOCH FROM last_edit) last_edit, locked from tArticle where content like {searchString}
       """).on('searchString -> search).as(Article.parse*)
     }) {
       // I'm not sure this is really robust enough...
@@ -310,4 +313,23 @@ object Article {
       save(article.id, article.title, newText, true)
     }
   }
+  
+  def lockArticle(id: Long): String = {
+    getArticleById(id) match {
+      case Some(a) => {
+        val newState = a.locked match {
+          case true => "U"
+          case false => "L"
+        }
+        DB.withConnection(implicit c =>
+          SQL("""update tArticle set locked = {state} where id = {id}""")
+          .on('state -> newState, 'id -> a.id).executeUpdate
+        )
+        newState
+      }
+      case _ => {"?"}
+    }
+  }
+  
+
 }

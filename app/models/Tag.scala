@@ -20,16 +20,17 @@ object Tag {
     }
   }
 
-  def getAllTags: List[(Tag, Long)] = {
+  def getAllTags(locked: Boolean): List[(Tag, Long)] = {
+    val articleLock = if (locked) "%" else "U"
     DB.withConnection(implicit c =>
       SQL("""
         select
           t.id,
           t.tag,
-          (select count(*) from tArticleTag ta where ta.tag_id = t.id) count 
+          (select count(*) from tArticleTag ta inner join tArticle a on (a.id=ta.article_id) where a.locked like {locked} ta.tag_id = t.id) count 
         from
           tTag t
-      """).as(Tag.parse ~ long("count") map(flatten) *)
+      """).on('locked -> articleLock).as(Tag.parse ~ long("count") map(flatten) *)
     )
   }
   
@@ -38,7 +39,7 @@ object Tag {
       SQL("""
         select
           t.id,
-          t.tag 
+          t.tag
         from
           tArticleTag ta
           inner join tTag t
@@ -49,7 +50,8 @@ object Tag {
     )
   }
   
-  def getArticlesWithTag(tag: String): List[Article] = {
+  def getArticlesWithTag(tag: String, locked: Boolean): List[Article] = {
+    val articleLocked = if (locked) "%" else "U"
     DB.withConnection(implicit c =>
       SQL("""
         select
@@ -60,8 +62,9 @@ object Tag {
           inner join tTag t on (at.tag_id = t.id) 
         where 
           t.tag = {tag}
+          a.locked like {locked}
         order by last_edit DESC
-      """).on('tag -> tag).as(Article.parse *)
+      """).on('tag -> tag, 'locked -> articleLocked).as(Article.parse *)
     )
   }
   
@@ -142,7 +145,7 @@ object Tag {
   }
   
   def deleteTag(tag: String): Boolean = {
-    getArticlesWithTag(tag).size match {
+    getArticlesWithTag(tag, true).size match {
       case 0 => {
         DB.withConnection(implicit c =>
           SQL("""
