@@ -124,7 +124,7 @@ object Application extends Controller with Secured {
   }
   
   def listArticles(search: String = "") = Action { implicit request =>
-    decode(search) match {
+    decode(search, "utf-8") match {
       case "" => Redirect(routes.Application.listRecent)
       case x  => Ok(views.html.articleList(loggedInUser(request), Tag.getArticlesWithTag(x), 'tag, x))
     }
