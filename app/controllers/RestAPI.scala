@@ -16,12 +16,23 @@ object RestAPI extends Controller {
   ) tupled
 
   def addTag = Action(parse.json) { request =>
-    
     request.body.validate[(Long, String)].map{ 
       case (id, tag) => {
         Tag.addTagToArticle(id, tag)
         Logger.info("Tagging article " + " with " + tag);
         Ok(tag)
+      }
+    }.recoverTotal{
+      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
+    }
+  }
+  
+  def removeTag = Action(parse.json) { request =>
+    request.body.validate[(Long, String)].map{ 
+      case (id, tag) => {
+        Tag.removeTagFromArticle(id, tag)
+        Logger.info("Removing tag" + tag + " from " + id);
+        Ok("")
       }
     }.recoverTotal{
       e => BadRequest("Detected error:"+ JsError.toFlatJson(e))

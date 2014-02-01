@@ -5,7 +5,12 @@
     case Left(x) => {
       <p id="tagList">
       @for(t <- x.tags) { 
-        <a href="@routes.Application.listArticles(t.name)">@t.name</a>
+        <span class="tag"><a href="@routes.Application.listArticles(t.name)">@t.name</a> 
+        @user match {
+          case Some(u) => { <span class="remove">X</span> }
+          case None => { }
+        }
+        </span>
       }
       </p>
       @user match {

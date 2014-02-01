@@ -22,9 +22,32 @@ jQuery(document).ready(function () {
       console.log("No tag...");
     }
   });
+
+  var doDelete = function() {
+    var id = Number(jQuery("#articleId").val());
+    var tag = jQuery(this).parent().find("a").html();
+    if (tag != "") {
+      jQuery.ajax({
+        url: "/tag/delete",
+        type: "POST",
+        data: JSON.stringify({"id": id, "tag": tag}),
+        contentType: "application/json; charset=UTF-8"
+      }).fail(function(x,t,e) {
+        // Catch this?
+        console.log(e);
+      })
+    } else {
+      console.log("No tag...");
+    }
+    jQuery(this).parent().hide();
+  };
+  
+  jQuery("#tagList .remove").click(doDelete)
   
   function addTag(data) {
-    jQuery("#tagList").append('<a href="/tag/' + data + '">' + data + '</a> ');
+    jQuery("#tagList").append('<span class="tag"><a href="/tag/' + data + '">' + data + '</a> <span class="remove">X</span></span>')
+      .find(".tag").mouseover(showDelete).mouseout(hideDelete)
+      .find(".remove").click(doDelete);
   }
   
   jQuery("#addTag").keyup(function(e){
@@ -33,4 +56,14 @@ jQuery(document).ready(function () {
         jQuery(this).trigger("enterKey");
     }
   });
+
+  var showDelete = function() {
+    jQuery(this).find(".remove").show();
+  }
+  var hideDelete = function() {
+    jQuery(this).find(".remove").hide();
+  }
+  
+  jQuery(".tag").mouseover(showDelete);
+  jQuery(".tag").mouseout(hideDelete);
 });
