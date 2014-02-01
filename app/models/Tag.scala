@@ -27,7 +27,7 @@ object Tag {
         select
           t.id,
           t.tag,
-          (select count(*) from tArticleTag ta inner join tArticle a on (a.id=ta.article_id) where a.locked like {locked} ta.tag_id = t.id) count 
+          (select count(*) from tArticleTag ta inner join tArticle a on (a.id=ta.article_id) where a.locked like {locked} and ta.tag_id = t.id) count 
         from
           tTag t
       """).on('locked -> articleLock).as(Tag.parse ~ long("count") map(flatten) *)
@@ -55,14 +55,14 @@ object Tag {
     DB.withConnection(implicit c =>
       SQL("""
         select
-          a.id, a.title, a.content, EXTRACT(EPOCH FROM a.last_edit) last_edit
+          a.id, a.title, a.content, EXTRACT(EPOCH FROM a.last_edit) last_edit, a.locked
         from
           tArticle a
           inner join tArticleTag at on (at.article_id = a.id)
           inner join tTag t on (at.tag_id = t.id) 
         where 
           t.tag = {tag}
-          a.locked like {locked}
+        and a.locked like {locked}
         order by last_edit DESC
       """).on('tag -> tag, 'locked -> articleLocked).as(Article.parse *)
     )

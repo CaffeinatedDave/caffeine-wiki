@@ -154,7 +154,7 @@ object Application extends Controller with Secured {
     val user = loggedInUser(request)
     val tagList = user match {
       case Some(_) => Tag.getAllTags(true)
-      case None => Tag.getAllTags(false)
+      case None => Tag.getAllTags(false).filter(t => t._2 != 0)
     }
     Ok(views.html.tags(user, tagList))
   }
