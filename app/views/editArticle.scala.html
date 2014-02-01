@@ -3,8 +3,15 @@
 @import helper._
 
 @main(Some(user), Left(article)) {
+  @if(request.uri.toString == routes.Application.wikiEditPreview.toString) {
+    <h2> Previewing @article.title: </h2>
+    <div id="previewArticle"> 
+    @Html(article.toHTML)
+    </div>
+    <hr/>
+  }
   <h1 id="title">Edit: @article.title</h1>
-  @helper.form(action = routes.Application.wikiEditSave) {
+  @helper.form(action = routes.Application.wikiEditPreview, 'id -> "articleEditForm") {
     @inputText(
       editForm("title"), 
       'id -> "title",
@@ -20,6 +27,7 @@
       'rows -> 20, 'cols -> 120
     )    
     <input type="hidden" name="id" value="@editForm("id").value"/>
-    <input type="submit" value="Save" />
+    <input type="button" value="Save" onclick="submitForm('@routes.Application.wikiEditSave')"/>
+    <input type="button" value="Preview" onclick="submitForm('@routes.Application.wikiEditPreview')"/>
   }
-}
+  }

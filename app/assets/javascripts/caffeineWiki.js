@@ -66,4 +66,10 @@ jQuery(document).ready(function () {
   
   jQuery(".tag").mouseover(showDelete);
   jQuery(".tag").mouseout(hideDelete);
+
 });
+
+function submitForm(action) {
+  jQuery('#articleEditForm').attr("action", action);
+  jQuery('#articleEditForm').submit();
+}

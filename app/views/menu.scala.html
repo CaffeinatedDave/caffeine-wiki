@@ -10,7 +10,8 @@
     @(user, article) match {
       case (Some(u), Left(x)) => {
         @if(request.uri.toString != routes.Application.wikiEdit(x.title).toString
-          && request.uri.toString != routes.Application.wikiEdit("New").toString) {
+          && request.uri.toString != routes.Application.wikiEdit("New").toString
+          && request.uri.toString != routes.Application.wikiEditPreview.toString) {
           <li><a href="@routes.Application.wikiEdit(x.title)">Edit</a></li>
         }
       }

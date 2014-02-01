@@ -12,6 +12,7 @@ GET     /logout                     controllers.Authentication.logout
 
 # Home page
 GET     /                           controllers.Application.wiki(page="Home")
+POST    /edit/preview               controllers.Application.wikiEditPreview
 POST    /edit                       controllers.Application.wikiEditSave
 GET     /tag                        controllers.Application.listTags
 POST    /tag                        controllers.RestAPI.addTag

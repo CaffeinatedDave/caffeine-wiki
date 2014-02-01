@@ -85,6 +85,16 @@ object Application extends Controller with Secured {
       }
     )
   }
+
+  def wikiEditPreview = withUser { user => implicit request => 
+    articleForm.bindFromRequest.fold(
+      formWithErrors => BadRequest("I don't even know"),
+      article => {
+        val sensibleTitle = decode(article.title.head.toUpper + article.title.tail, "utf-8")
+        Ok(views.html.editArticle(user, articleForm fill (article), article))
+      }
+    )
+  }
   
   def delete(name: String) = withUser { user => implicit request =>
     val sensiblePage = decode(name.head.toUpper + name.tail, "utf-8")
