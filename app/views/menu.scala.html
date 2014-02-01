@@ -21,13 +21,18 @@
   </ul>
   @user match {
     case Some(u) => { 
-      <p style="float: right"><span> @u.name </span>
-      <a href="@routes.Authentication.logout">Logout</a>
+      <p id="userDetail">
+        <span> Hi, @u.name </span>
+        <a href="@routes.Authentication.logout">Logout</a>
       </p> 
     }
     case None => {
-      <form style="float:right" action="@routes.Authentication.login" method="POST">
-        <input type="text" name="username" /> <input type="password" name="password" /> <input type="submit" value="Login" />
+      <form id="loginForm" style="float:right" action="@routes.Authentication.login" method="POST">
+        <span id="loginInputs">
+          <input type="text" name="username" />
+          <input type="password" name="password" />
+          <input type="submit" value="Login" />
+        </span>
       </form>
     }
   }
